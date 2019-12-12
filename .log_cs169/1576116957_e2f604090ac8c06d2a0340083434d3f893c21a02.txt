@@ -1,0 +1,43 @@
+a1, development
+diff --git a/app/views/engagements/_index.html.haml b/app/views/engagements/_index.html.haml
+index 52aab12..0bc3812 100644
+--- a/app/views/engagements/_index.html.haml
++++ b/app/views/engagements/_index.html.haml
+@@ -27,7 +27,7 @@
+           %td= link_to image_tag('deployment.png', size: '35x35', title: 'Deploy'), engagement.prototype_deployment_url, :target => '_blank'
+           %td= link_to image_tag('video.png', size: '35x35', title: 'Screencast'), engagement.screencast_url, :target => '_blank'
+           %td= link_to image_tag('presentation.png', size: '35x35', title: 'Presentation'), engagement.presentation_url, :target => '_blank'
+-          %td{"id" => "#{engagement.id}"}
++          %td
+             = link_to('Edit', edit_app_engagement_path(app,engagement), :class => 'btn btn-primary', style: 'padding: 5px 5px;')
+             = link_to 'Destroy', app_engagement_path(app,engagement), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger', style: 'padding: 5px 5px;'
+             = link_to('CSV', export_path(app,engagement), :class => 'btn btn-info', style: 'padding: 5px 5px;')
+diff --git a/features/engagement_features.feature b/features/engagement_features.feature
+index 5cfac0e..749447d 100644
+--- a/features/engagement_features.feature
++++ b/features/engagement_features.feature
+@@ -44,7 +44,6 @@ Background: Logged in
+    And I follow "Apps"
+ 
+ 
+-@javascript
+ # Story ID: 1529857751
+ Scenario: A user can see features for each engagement on App's detail page
+     Given I follow "app1"
+diff --git a/features/step_definitions/engagement_steps.rb b/features/step_definitions/engagement_steps.rb
+index b7425c2..56b1859 100644
+--- a/features/step_definitions/engagement_steps.rb
++++ b/features/step_definitions/engagement_steps.rb
+@@ -38,6 +38,7 @@ When /^I choose "(.*)" with number (.+)$/ do |selector, value|
+ end
+ 
+ Then /^I should see "(.*)" is prefilled with number (.+)$/ do |selector, value|
++  selector.gsub!(/ /, "_")
+   expect(page).to have_select(selector, :selected => value)
+ end
+ 
+
+--
+1	1	app/views/engagements/_index.html.haml
+0	1	features/engagement_features.feature
+1	0	features/step_definitions/engagement_steps.rb

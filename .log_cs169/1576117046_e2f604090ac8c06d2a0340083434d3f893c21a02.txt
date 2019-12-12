@@ -1,0 +1,17 @@
+a1, development
+diff --git a/features/engagement_features.feature b/features/engagement_features.feature
+index 749447d..71af023 100644
+--- a/features/engagement_features.feature
++++ b/features/engagement_features.feature
+@@ -44,6 +44,8 @@ Background: Logged in
+    And I follow "Apps"
+ 
+ 
++@javascript
++
+ # Story ID: 1529857751
+ Scenario: A user can see features for each engagement on App's detail page
+     Given I follow "app1"
+
+--
+2	0	features/engagement_features.feature

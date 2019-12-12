@@ -45,6 +45,7 @@ Background: Logged in
 
 
 @javascript
+
 # Story ID: 1529857751
 Scenario: A user can see features for each engagement on App's detail page
     Given I follow "app1"

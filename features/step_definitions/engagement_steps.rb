@@ -55,5 +55,6 @@ end
 
 Then /^I should see "(.*)" is selected in "(.+)"$/ do |name, selector|
   student_id = User.find_by_name(name).id
+  selector.gsub!(/ /, "_")
   expect(page).to have_select(selector, :selected => student_id)
 end
