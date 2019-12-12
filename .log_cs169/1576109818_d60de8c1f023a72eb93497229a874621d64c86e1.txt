@@ -1,0 +1,93 @@
+a1, test
+diff --git a/app/views/engagements/_index.html.haml b/app/views/engagements/_index.html.haml
+index 0bc3812..f37fd2b 100644
+--- a/app/views/engagements/_index.html.haml
++++ b/app/views/engagements/_index.html.haml
+@@ -1,4 +1,4 @@
+-.table-responsive
++.table-responsive{"id" => "Engagements"}
+   %table.table
+     %thead
+       %tr
+@@ -13,7 +13,7 @@
+     %tbody
+       - engagements.each do |engagement|
+         - app = engagement.app
+-        %tr
++        %tr{"id" => "Engagement #{engagement.id}"}
+           %td= link_to engagement.start_date.strftime('%F'), engagement_iterations_path(engagement)
+           %td= mail_to(engagement.client.email, engagement.client.name) if engagement.client
+           %td{style: 'max-width: 150px; overflow: hidden;'}= [engagement.coach.try(:name),engagement.coaching_org.try(:name)].join(', ')
+@@ -28,7 +28,7 @@
+           %td= link_to image_tag('video.png', size: '35x35', title: 'Screencast'), engagement.screencast_url, :target => '_blank'
+           %td= link_to image_tag('presentation.png', size: '35x35', title: 'Presentation'), engagement.presentation_url, :target => '_blank'
+           %td
+-            = link_to('Edit', edit_app_engagement_path(app,engagement), :class => 'btn btn-primary', style: 'padding: 5px 5px;')
+-            = link_to 'Destroy', app_engagement_path(app,engagement), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger', style: 'padding: 5px 5px;'
+-            = link_to('CSV', export_path(app,engagement), :class => 'btn btn-info', style: 'padding: 5px 5px;')
++            = link_to('Edit', edit_app_engagement_path(app,engagement), :class => 'btn btn-primary', style: 'padding: 5px 5px;', "id" => "Edit")
++            = link_to 'Destroy', app_engagement_path(app,engagement), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger', style: 'padding: 5px 5px;', "id" => "Destroy"
++            = link_to('CSV', export_path(app,engagement), :class => 'btn btn-info', style: 'padding: 5px 5px;', "id" => "CSV")
+             = link_to('Request Feedback', new_engagement_iteration_path(engagement), :class => 'btn btn-success pull-right',  style: 'padding: 5px 10px;')
+\ No newline at end of file
+diff --git a/features/engagement_features.feature b/features/engagement_features.feature
+index 6bcb8f8..c031a4c 100644
+--- a/features/engagement_features.feature
++++ b/features/engagement_features.feature
+@@ -13,6 +13,7 @@ Background: Logged in
+     And the following engagements exist:
+         | id | app_id | coach_id | team_number | start_date | student_names       | features |
+         | 1  | 1      | 1        | 1           | 2017-10-01 | fake1, fake2, fake3 | Adding feature boxes |
++        | 2  | 1      | 1        | 2           | 2017-10-01 | fake1, fake2, fake3 | Adding feature boxes |
+ 
+     And the following iterations exist:
+         | id | engagement_id | end_date   | customer_feedback |
+@@ -30,6 +31,13 @@ Background: Logged in
+        | 2  | user2 |                 | test1@user.com | student       |
+        | 3  | user3 |                 | test2@user.com | client        |
+        | 4  | user4 |                 | test4@user.com | client        |
++       | 10 | student1 |              | testSelect2@student1.com  | student         |
++       | 11 | student2 |              | testSelect2@student2.com  | student         |
++       | 12 | student3 |              | testSelect2@student3.com  | student         |
++       | 13 | student4 |              | testSelect2@student4.com  | student         |
++       | 14 | student5 |              | testSelect2@student5.com  | student         |
++       | 15 | student6 |              | testSelect2@student6.com  | student         |
++       | 16 | student7 |              | testSelect2@student7.com  | student         |
+ 
+ 
+    And I'm logged in on the orgs page
+@@ -53,4 +61,12 @@ Scenario: A user can add features while creating engagement
+        | Features               | more features!!   |
+    And I press "Create Engagement"
+    Then I should see "Engagement was successfully created."
+-   And I should see "more features!!" 
+\ No newline at end of file
++   And I should see "more features!!" 
++
++Scenario: A coach can edit an Engagement and 
++          be able to search and add multiple students from a list existing students
++    
++    When I follow "app1"
++    Then I should see "Engagements"
++    When I follow "Edit" for Engagement with id 1
++    
+\ No newline at end of file
+diff --git a/features/step_definitions/engagement_steps.rb b/features/step_definitions/engagement_steps.rb
+index b03ac05..9614748 100644
+--- a/features/step_definitions/engagement_steps.rb
++++ b/features/step_definitions/engagement_steps.rb
+@@ -39,4 +39,8 @@ end
+ 
+ Then /^I should see "(.*)" is prefilled with number (.+)$/ do |selector, value|
+   expect(page).to have_select(selector, :selected => value)
++end
++
++When /^I follow "(.*)" for Engagement with id (.+)$/ do |link, eng_id|
++  page.find(:xpath, "//div[@id='Engagements']//tr[@id='Engagement #{eng_id}']//td[contains(.,#{link})]/a").click
+ end
+\ No newline at end of file
+
+--
+5	5	app/views/engagements/_index.html.haml
+17	1	features/engagement_features.feature
+4	0	features/step_definitions/engagement_steps.rb

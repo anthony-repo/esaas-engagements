@@ -1,0 +1,126 @@
+a1, test
+diff --git a/app/views/engagements/_form.html.haml b/app/views/engagements/_form.html.haml
+index 13028df..a3d0b4c 100644
+--- a/app/views/engagements/_form.html.haml
++++ b/app/views/engagements/_form.html.haml
+@@ -9,7 +9,7 @@
+         %fieldset.col-md-6
+             %legend Team Info and Work Products
+             = f.text_field :team_number, label: 'Team Number'
+-            = f.collection_select(:developer_ids, User.students, :id, :name, {include_blank: true, label: 'Student Names'}, {multiple: true, class: 'select2'})
++            = f.collection_select(:developer_ids, User.students, :id, :name, {include_blank: true, label: 'Student Names'}, {multiple: true, class: 'select2', "id" => "Student_Names"})
+             = f.url_field :screencast_url, label: 'Screencast Url'
+             = f.url_field :screenshot_url, label: 'Screenshot Url'
+             = f.url_field :poster_url, label: 'Poster Url'
+diff --git a/app/views/engagements/_index.html.haml b/app/views/engagements/_index.html.haml
+index 0bc3812..6350327 100644
+--- a/app/views/engagements/_index.html.haml
++++ b/app/views/engagements/_index.html.haml
+@@ -1,4 +1,4 @@
+-.table-responsive
++.table-responsive{"id" => "Engagements"}
+   %table.table
+     %thead
+       %tr
+@@ -13,7 +13,7 @@
+     %tbody
+       - engagements.each do |engagement|
+         - app = engagement.app
+-        %tr
++        %tr{"id" => "Engagement_#{engagement.id}"}
+           %td= link_to engagement.start_date.strftime('%F'), engagement_iterations_path(engagement)
+           %td= mail_to(engagement.client.email, engagement.client.name) if engagement.client
+           %td{style: 'max-width: 150px; overflow: hidden;'}= [engagement.coach.try(:name),engagement.coaching_org.try(:name)].join(', ')
+@@ -27,8 +27,8 @@
+           %td= link_to image_tag('deployment.png', size: '35x35', title: 'Deploy'), engagement.prototype_deployment_url, :target => '_blank'
+           %td= link_to image_tag('video.png', size: '35x35', title: 'Screencast'), engagement.screencast_url, :target => '_blank'
+           %td= link_to image_tag('presentation.png', size: '35x35', title: 'Presentation'), engagement.presentation_url, :target => '_blank'
+-          %td
+-            = link_to('Edit', edit_app_engagement_path(app,engagement), :class => 'btn btn-primary', style: 'padding: 5px 5px;')
+-            = link_to 'Destroy', app_engagement_path(app,engagement), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger', style: 'padding: 5px 5px;'
+-            = link_to('CSV', export_path(app,engagement), :class => 'btn btn-info', style: 'padding: 5px 5px;')
++          %td{"id" => "#{engagement.id}"}
++            = link_to('Edit', edit_app_engagement_path(app,engagement), :class => 'btn btn-primary', style: 'padding: 5px 5px;', "id" => "Edit")
++            = link_to 'Destroy', app_engagement_path(app,engagement), method: :delete, data: { confirm: 'Are you sure?' }, :class => 'btn btn-danger', style: 'padding: 5px 5px;', "id" => "Destroy"
++            = link_to('CSV', export_path(app,engagement), :class => 'btn btn-info', style: 'padding: 5px 5px;', "id" => "CSV")
+             = link_to('Request Feedback', new_engagement_iteration_path(engagement), :class => 'btn btn-success pull-right',  style: 'padding: 5px 10px;')
+\ No newline at end of file
+diff --git a/features/engagement_features.feature b/features/engagement_features.feature
+index 6bcb8f8..3af885c 100644
+--- a/features/engagement_features.feature
++++ b/features/engagement_features.feature
+@@ -13,6 +13,7 @@ Background: Logged in
+     And the following engagements exist:
+         | id | app_id | coach_id | team_number | start_date | student_names       | features |
+         | 1  | 1      | 1        | 1           | 2017-10-01 | fake1, fake2, fake3 | Adding feature boxes |
++        | 2  | 1      | 1        | F19-8           | 2017-10-01 | fake1, fake2, fake3 | Adding feature boxes |
+ 
+     And the following iterations exist:
+         | id | engagement_id | end_date   | customer_feedback |
+@@ -30,6 +31,13 @@ Background: Logged in
+        | 2  | user2 |                 | test1@user.com | student       |
+        | 3  | user3 |                 | test2@user.com | client        |
+        | 4  | user4 |                 | test4@user.com | client        |
++       | 10 | student1 |              | testSelect2@student1.com  | student         |
++       | 11 | student2 |              | testSelect2@student2.com  | student         |
++       | 12 | student3 |              | testSelect2@student3.com  | student         |
++       | 13 | student4 |              | testSelect2@student4.com  | student         |
++       | 14 | student5 |              | testSelect2@student5.com  | student         |
++       | 15 | student6 |              | testSelect2@student6.com  | student         |
++       | 16 | student7 |              | testSelect2@student7.com  | student         |
+ 
+ 
+    And I'm logged in on the orgs page
+@@ -53,4 +61,16 @@ Scenario: A user can add features while creating engagement
+        | Features               | more features!!   |
+    And I press "Create Engagement"
+    Then I should see "Engagement was successfully created."
+-   And I should see "more features!!" 
+\ No newline at end of file
++   And I should see "more features!!" 
++
++Scenario: A coach can edit an Engagement and 
++          be able to search and add multiple students from a list existing students
++    
++    When I follow "app1"
++    Then I should see "Engagements"
++    When I follow Edit for Engagement with id 2
++    Then I should see /Editing Engagement For "app1"/
++    When I click on the "Student Names" option
++    Then I should see "student1, student2, student3, student4, student5, student6, student7" inside "Student Names" options
++    And I select "Student Names" with name "student1"
++    Then I should see "student1" is selected in "Student Names"
+diff --git a/features/step_definitions/engagement_steps.rb b/features/step_definitions/engagement_steps.rb
+index b03ac05..c8b94b3 100644
+--- a/features/step_definitions/engagement_steps.rb
++++ b/features/step_definitions/engagement_steps.rb
+@@ -39,4 +39,22 @@ end
+ 
+ Then /^I should see "(.*)" is prefilled with number (.+)$/ do |selector, value|
+   expect(page).to have_select(selector, :selected => value)
++end
++
++
++When /^I follow Edit for Engagement with id (.+)$/ do |eng_id|
++  engagement = Engagement.find(eng_id)
++  visit edit_app_engagement_path(engagement.app, engagement)
++end
++
++Then /^I select "(.*)" with name "(.+)"$/ do |selector, name|
++  student_id = User.find_by_name(name).id
++  selector.gsub!(/ /, "_")
++  find_field(selector).find(text:"#{name}").click
++end
++
++Then /^I should see "(.*)" is selected in "(.+)"$/ do |name, selector|
++  student_id = User.find_by_name(name).id
++  selector.gsub!(/ /, "_")
++  expect(page).to have_select(selector, :selected => student_id)
+ end
+\ No newline at end of file
+
+--
+1	1	app/views/engagements/_form.html.haml
+6	6	app/views/engagements/_index.html.haml
+21	1	features/engagement_features.feature
+18	0	features/step_definitions/engagement_steps.rb
