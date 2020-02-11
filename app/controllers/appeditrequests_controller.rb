@@ -37,5 +37,8 @@ class AppeditrequestsController < ApplicationController
   def auth_user?
     User.find_by_id(session[:user_id])&.coach?
   end
-
+  
+  def dumb
+    return 0
+  end
 end
