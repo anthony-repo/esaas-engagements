@@ -27,8 +27,9 @@ class AppsController < ApplicationController
     if @current_engagement.present?
       @iterations = @current_engagement.iterations
     else
-      @iterations = nil
+      @iterations = 232323
     end
+    return 0
   end
 
   # GET /apps/new
